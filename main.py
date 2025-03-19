@@ -6,6 +6,17 @@ import torch.utils.data as data
 import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
 import time
+import os
+
+BASE_PATH = os.path.dirname(__file__)
+
+def save_data(data, path):
+    if not os.path.exists(path):
+        os.makedirs(path)
+    file_index = 0
+    while os.path.exists(os.path.join(path, f"data_{file_index}.pt")):
+        file_index += 1
+    torch.save(data, os.path.join(path, f"data_{file_index}.pt"))
 
 def get_autocorrelation(signal: np.ndarray, length: int) -> np.ndarray:
     """
@@ -35,28 +46,54 @@ def add_gaussian_noise(signal: np.ndarray, sigma: int = 1) -> np.ndarray:
     noise = np.random.normal(0, sigma, np.shape(signal))
     return signal + noise
 
-def main():
-    # Generate a gaussian signal:
-    base_signal = add_gaussian_noise(np.zeros(1000), 1)
+def generate_data_set(iterations: int, observation_length: int, signal_length: int, sigma: int, seed: int = 0, K: int = 0, file_path: str = os.path.dirname(__file__)):
+    """
+        Generates a dataset by creating a Gaussian signal, adding noise, and calculating statistical moments.
+    Parameters:
+        iterations (int): The number of iterations to generate noisy signals.
+        observation_length (int): The length of the noisy signal observations.
+        signal_length (int): The length of the base Gaussian signal.
+        sigma (int): The standard deviation of the Gaussian noise to be added.
+        seed (int, optional): The random seed for reproducibility. Defaults to 0.
+        K (int, optional): The starting position of the signal in the noise. Defaults to 0.
+    Returns:
+        None: The function does not return any value but performs calculations for each iteration.
+    """
+    np.random.seed(seed)
+    
+    
+    means = torch.zeros(iterations)  
+    acors = torch.zeros(iterations, 2*signal_length - 1)  
+    third_moments = torch.zeros(iterations, 2*signal_length - 1, 2*signal_length - 1)  
 
-    # Add noise
-    Noisy_signal = add_gaussian_noise(base_signal, 0.1)
+    # means = []
+    # acors = []
+    # third_moments = []
 
-    # calculate moments:
-    mean = np.mean(Noisy_signal)
-    acor = get_autocorrelation(Noisy_signal, length=100)
-    start = time.time()
-    third_moment = get_third_moment(Noisy_signal, length=100)
-    end = time.time()
-    print(end - start)
-    print(f"The mean of the signal is: {mean}")
-    print(f"the auto correlation of the signal is: {acor}")
-    print(f"the third moment of the signal is {third_moment}")
-    print('tat')
+    for iteration in range(iterations):
+        # Generate a gaussian signal N(0, 1):
+        if iteration % 10 == 0:
+            print(f"Generating iteration {iteration}")
+        base_signal = np.random.normal(0, 1, signal_length)
+        
+        # Add noise
+        noise = np.random.normal(0, sigma, observation_length)
+        padded_base = np.pad(base_signal, (K, observation_length - K - signal_length), 'constant')
+        noisy_signal = padded_base + noise
 
+        # calculate moments:
+        mean = np.mean(noisy_signal)
+        means[iteration] = mean
+        acor = get_autocorrelation(noisy_signal, length=signal_length)
+        acors[iteration] = torch.tensor(acor)
+        third_moment = get_third_moment(noisy_signal, length=signal_length)
+        third_moments[iteration] = torch.tensor(third_moment)
+
+
+    # Save data to the specified path without overwriting existing files
+    save_data({"scalars": means, "arrays": acors, "matrices": third_moments}, file_path)
 
 
 # Example usage
 if __name__ == "__main__":
-    main()
-    print('yay')
+    generate_data_set(iterations=10, observation_length=200, signal_length=100, sigma=1, seed=0, K=0)
