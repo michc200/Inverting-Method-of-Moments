@@ -10,7 +10,7 @@ import os
 
 BASE_PATH = os.path.dirname(__file__)
 
-def save_data(data, path):
+def save_data(data: torch.Tensor, path: str) -> None:
     if not os.path.exists(path):
         os.makedirs(path)
     file_index = 0
@@ -46,7 +46,7 @@ def add_gaussian_noise(signal: np.ndarray, sigma: int = 1) -> np.ndarray:
     noise = np.random.normal(0, sigma, np.shape(signal))
     return signal + noise
 
-def generate_data_set(iterations: int, observation_length: int, signal_length: int, sigma: int, seed: int = 0, K: int = 0, file_path: str = os.path.dirname(__file__)):
+def generate_data_set(iterations: int, observation_length: int, signal_length: int, sigma: int, seed: int = 0, K: int = 0, file_path: str = os.path.dirname(__file__)) -> None:
     """
         Generates a dataset by creating a Gaussian signal, adding noise, and calculating statistical moments.
     Parameters:
@@ -56,9 +56,12 @@ def generate_data_set(iterations: int, observation_length: int, signal_length: i
         sigma (int): The standard deviation of the Gaussian noise to be added.
         seed (int, optional): The random seed for reproducibility. Defaults to 0.
         K (int, optional): The starting position of the signal in the noise. Defaults to 0.
+        file_path (str, optional): The path to save the dataset. Defaults to os.path.dirname(__file__).
     Returns:
         None: The function does not return any value but performs calculations for each iteration.
     """
+    # Note: At the moment there is only the ability to generate a dataset with a single instance of a signal in it.
+    # If there's a need to generate a dataset with multiple signals in it, the code will need to be modified - TBD.
     np.random.seed(seed)
     
     
