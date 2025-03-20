@@ -23,22 +23,37 @@ def get_autocorrelation(signal: np.ndarray, length: int) -> np.ndarray:
     This function calculates the autocorrelation of a signal for the values in (-length, length).
     """
     n = len(signal)
-    padded_signal = np.pad(signal, (n, n), 'constant')
+    assert n >= length, "maximum lag should be less than the length of the signal"
+
+    padded_signal = np.pad(signal, (n-1, n-1), 'constant')
     acor = np.zeros(2*length - 1)
     for lag in range(-length + 1, length):
-        acor[lag + length - 1] = np.sum(np.roll(padded_signal, lag) * padded_signal)
+        valid_range = slice(n-1, n-1 + len(signal))  # Valid part of the signal
+        acor[lag + length - 1] = np.sum(padded_signal[valid_range] * padded_signal[valid_range.start + lag : valid_range.stop + lag])
     return acor / n
 
 def get_third_moment(signal: np.ndarray, length: int) -> np.ndarray:
-
+    """
+    Computes the third-order moment matrix of a signal.
+    Parameters:
+        signal (np.ndarray): Input signal.
+        length (int): Maximum lag in each direction for the third-order moment.
+    Returns:
+        np.ndarray: 2D matrix of shape (2*length - 1, 2*length - 1).
+    """
     n = length # max lag
+    assert len(signal) >= n, "maximum lag should be less than the length of the signal"
 
     third_moment = np.zeros((2*n - 1, 2*n - 1))
-    padded_signal = np.pad(signal, (n, n), 'constant')
+    padded_signal = np.pad(signal, (n-1, n-1), 'constant')
     
     for lag_1 in range(-n + 1, n):
         for lag_2 in range(-n + 1, n):
-            third_moment[lag_1 + n - 1, lag_2 + n - 1] = np.sum(padded_signal*np.roll(padded_signal, lag_1)*np.roll(padded_signal, lag_2))
+            valid_range = slice(n-1, n-1 + len(signal))  # Valid part of the signal
+            third_moment[lag_1 + n - 1, lag_2 + n - 1] = np.sum(
+                padded_signal[valid_range] * 
+                padded_signal[valid_range.start + lag_1 : valid_range.stop + lag_1] * 
+                padded_signal[valid_range.start + lag_2 : valid_range.stop + lag_2])
     
     return third_moment / len(signal)
 
@@ -99,4 +114,4 @@ def generate_data_set(iterations: int, observation_length: int, signal_length: i
 
 # Example usage
 if __name__ == "__main__":
-    generate_data_set(iterations=10, observation_length=200, signal_length=100, sigma=1, seed=0, K=0)
+    generate_data_set(iterations=100, observation_length=200, signal_length=100, sigma=1, seed=0, K=0)
