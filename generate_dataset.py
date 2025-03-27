@@ -61,43 +61,76 @@ def add_gaussian_noise(signal: np.ndarray, sigma: int = 1) -> np.ndarray:
     noise = np.random.normal(0, sigma, np.shape(signal))
     return signal + noise
 
-def generate_data_set(iterations: int, observation_length: int, signal_length: int, sigma: int, seed: int = 0, K: int = 0, file_path: str = os.path.dirname(__file__)) -> None:
+def create_clean_observation(base_signal: np.ndarray, observation_length: int, gamma: float = 0.2) -> np.ndarray:
     """
-        Generates a dataset by creating a Gaussian signal, adding noise, and calculating statistical moments.
+    Generates a clean observation signal by embedding multiple instances of a base signal 
+    into a zero-padded array while maintaining a separation condition.
+    Parameters:
+    -----------
+    base_signal : np.ndarray
+        The base signal to be embedded into the observation.
+    observation_length : int
+        The total length of the observation signal.
+    gamma : float, optional
+        A parameter controlling the density of the base signal instances in the observation.
+        Must be less than or equal to 0.5. Default is 0.2.
+    Returns:
+    --------
+    np.ndarray
+        The generated observation signal containing multiple instances of the base signal 
+        separated by zeros.
+    """
+    L = len(base_signal)
+    instance_number = int((observation_length * gamma) / L)
+    assert gamma <= 0.5, "gamma should be less than 0.5 for the separation condition to hold"
+    assert instance_number * (L*2-1) <= observation_length, f"For seperation condition, (L*2-1) * instance_number = {(2*L-1) * instance_number} should be <= N={observation_length}"
+    assert instance_number > 0, "At least one instance of the base signal should be embedded in the observation"
+
+    observation = np.zeros(observation_length)
+    available_zeros = observation_length - instance_number * (L*2)
+    padded_base = np.pad(base_signal, (0, L-1), 'constant')
+
+    start = 0    
+    for i in range(instance_number):
+        shift = np.random.choice(np.arange(available_zeros))
+        observation[start + shift : start + shift + 2*L - 1] += padded_base
+        available_zeros -= shift
+        start += 2*L + shift
+
+    return observation
+
+def generate_data_set(iterations: int, observation_length: int, signal_length: int, sigma: int, seed: int = 0, gamma: float = 0.2, file_path: str = os.path.dirname(__file__)) -> None:
+    """
+    Generates a dataset by creating a Gaussian signal, adding noise, and calculating statistical moments.
     Parameters:
         iterations (int): The number of iterations to generate noisy signals.
         observation_length (int): The length of the noisy signal observations.
         signal_length (int): The length of the base Gaussian signal.
         sigma (int): The standard deviation of the Gaussian noise to be added.
         seed (int, optional): The random seed for reproducibility. Defaults to 0.
-        K (int, optional): The starting position of the signal in the noise. Defaults to 0.
+        gamma (float, optional): A parameter controlling the density of the base signal instances in the observation. Must be less than or equal to 0.5. Default is 0.2.
         file_path (str, optional): The path to save the dataset. Defaults to os.path.dirname(__file__).
     Returns:
         None: The function does not return any value but performs calculations for each iteration.
     """
-    # Note: At the moment there is only the ability to generate a dataset with a single instance of a signal in it.
-    # If there's a need to generate a dataset with multiple signals in it, the code will need to be modified - TBD.
     np.random.seed(seed)
     
     
     means = torch.zeros(iterations)  
     acors = torch.zeros(iterations, 2*signal_length - 1)  
-    third_moments = torch.zeros(iterations, 2*signal_length - 1, 2*signal_length - 1)  
-
-    # means = []
-    # acors = []
-    # third_moments = []
-
+    third_moments = torch.zeros(iterations, 2*signal_length - 1, 2*signal_length - 1)
+    base_signal = np.random.normal(0, 1, signal_length)
+ 
     for iteration in range(iterations):
-        # Generate a gaussian signal N(0, 1):
-        if iteration % 10 == 0:
-            print(f"Generating iteration {iteration}")
-        base_signal = np.random.normal(0, 1, signal_length)
-        
+        if (iteration + 1) % 10 == 0:
+            print(f"Generating iteration {iteration+1}")
+
+        # Create an observation of base signal with density gamma:
+        clean_observation = create_clean_observation(base_signal=base_signal, observation_length=observation_length, gamma=gamma)
+
         # Add noise
         noise = np.random.normal(0, sigma, observation_length)
-        padded_base = np.pad(base_signal, (K, observation_length - K - signal_length), 'constant')
-        noisy_signal = padded_base + noise
+        noisy_signal = clean_observation + noise
 
         # calculate moments:
         mean = np.mean(noisy_signal)
@@ -114,4 +147,4 @@ def generate_data_set(iterations: int, observation_length: int, signal_length: i
 
 # Example usage
 if __name__ == "__main__":
-    generate_data_set(iterations=100, observation_length=200, signal_length=100, sigma=1, seed=0, K=0)
+    generate_data_set(iterations=100, observation_length=200, signal_length=12, sigma=1, seed=0)
