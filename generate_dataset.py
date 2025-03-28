@@ -18,6 +18,7 @@ def save_data(data: torch.Tensor, path: str) -> None:
         file_index += 1
     torch.save(data, os.path.join(path, f"data_{file_index}.pt"))
 
+# TODO: Change moment calculations to only be for positive lags
 def get_autocorrelation(signal: np.ndarray, length: int) -> np.ndarray:
     """
     This function calculates the autocorrelation of a signal for the values in (-length, length).
@@ -80,6 +81,7 @@ def create_clean_observation(base_signal: np.ndarray, observation_length: int, g
         The generated observation signal containing multiple instances of the base signal 
         separated by zeros.
     """
+    # TODO: Change implementation to fix non-uniformity in the density 
     L = len(base_signal)
     instance_number = int((observation_length * gamma) / L)
     assert gamma <= 0.5, "gamma should be less than 0.5 for the separation condition to hold"
@@ -147,4 +149,4 @@ def generate_data_set(iterations: int, observation_length: int, signal_length: i
 
 # Example usage
 if __name__ == "__main__":
-    generate_data_set(iterations=100, observation_length=200, signal_length=12, sigma=1, seed=0)
+    generate_data_set(iterations=1, observation_length=10**5, signal_length=21, sigma=0.5, seed=312, gamma=0.2, file_path=os.path.join(BASE_PATH, "long_observation"))
