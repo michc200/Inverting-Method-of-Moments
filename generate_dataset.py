@@ -18,19 +18,17 @@ def save_data(data: torch.Tensor, path: str) -> None:
         file_index += 1
     torch.save(data, os.path.join(path, f"data_{file_index}.pt"))
 
-# TODO: Change moment calculations to only be for positive lags
 def get_autocorrelation(signal: np.ndarray, length: int) -> np.ndarray:
     """
-    This function calculates the autocorrelation of a signal for the values in (-length, length).
+    This function calculates the autocorrelation of a signal for the values in (0, length).
     """
     n = len(signal)
     assert n >= length, "maximum lag should be less than the length of the signal"
 
-    padded_signal = np.pad(signal, (n-1, n-1), 'constant')
-    acor = np.zeros(2*length - 1)
-    for lag in range(-length + 1, length):
-        valid_range = slice(n-1, n-1 + len(signal))  # Valid part of the signal
-        acor[lag + length - 1] = np.sum(padded_signal[valid_range] * padded_signal[valid_range.start + lag : valid_range.stop + lag])
+    padded_signal = np.pad(signal, (0, length), 'constant')
+    acor = np.zeros(length)
+    for lag in range(length):
+        acor[lag] = np.sum(padded_signal[0:n] * padded_signal[lag:n+lag])
     return acor / n
 
 def get_third_moment(signal: np.ndarray, length: int) -> np.ndarray:
@@ -40,23 +38,21 @@ def get_third_moment(signal: np.ndarray, length: int) -> np.ndarray:
         signal (np.ndarray): Input signal.
         length (int): Maximum lag in each direction for the third-order moment.
     Returns:
-        np.ndarray: 2D matrix of shape (2*length - 1, 2*length - 1).
+        np.ndarray: 2D matrix of shape (length, length).
     """
-    n = length # max lag
-    assert len(signal) >= n, "maximum lag should be less than the length of the signal"
-
-    third_moment = np.zeros((2*n - 1, 2*n - 1))
-    padded_signal = np.pad(signal, (n-1, n-1), 'constant')
+    assert len(signal) >= length, "maximum lag should be less than the length of the signal"
+    n = len(signal)
+    third_moment = np.zeros((length, length))
+    padded_signal = np.pad(signal, (0, length), 'constant')
     
-    for lag_1 in range(-n + 1, n):
-        for lag_2 in range(-n + 1, n):
-            valid_range = slice(n-1, n-1 + len(signal))  # Valid part of the signal
-            third_moment[lag_1 + n - 1, lag_2 + n - 1] = np.sum(
-                padded_signal[valid_range] * 
-                padded_signal[valid_range.start + lag_1 : valid_range.stop + lag_1] * 
-                padded_signal[valid_range.start + lag_2 : valid_range.stop + lag_2])
+    for lag_1 in range(0, length):
+        for lag_2 in range(0, length):
+            third_moment[lag_1, lag_2] = np.sum(
+                padded_signal[0:n] * 
+                padded_signal[0 + lag_1 : n + lag_1] * 
+                padded_signal[0 + lag_2 : n + lag_2])
     
-    return third_moment / len(signal)
+    return third_moment / n
 
 def add_gaussian_noise(signal: np.ndarray, sigma: int = 1) -> np.ndarray:
     noise = np.random.normal(0, sigma, np.shape(signal))
@@ -119,8 +115,8 @@ def generate_data_set(iterations: int, observation_length: int, signal_length: i
     
     
     means = torch.zeros(iterations)  
-    acors = torch.zeros(iterations, 2*signal_length - 1)  
-    third_moments = torch.zeros(iterations, 2*signal_length - 1, 2*signal_length - 1)
+    acors = torch.zeros(iterations, signal_length)  
+    third_moments = torch.zeros(iterations, signal_length, signal_length)
     base_signal = np.random.normal(0, 1, signal_length)
  
     for iteration in range(iterations):
