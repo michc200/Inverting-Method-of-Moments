@@ -19,12 +19,12 @@ gamma = 0.2
 
 x = np.random.rand(L) # TODO: maybe replace this with a gaussian function
 x = x / np.linalg.norm(x)
-y_clean = utils.generate_micrograph_1d(x, gamma, L, N)
+# y_clean = utils.generate_micrograph_1d(x, gamma, L, N)
 y_clean = gen.create_clean_observation(base_signal=x, observation_length=N, gamma=gamma)
 
 SNR = 0.5
 sigma2 = (np.linalg.norm(x) ** 2) / (L * SNR)
-y = y_clean + np.random.normal(loc=0, scale=np.sqrt(sigma2), size=np.shape(y_clean)) # replace with my function
+y = gen.add_gaussian_noise(signal=y_clean, sigma=np.sqrt(sigma2))
 
 shifts_2nd = utils.shifts_2nd(L)
 
@@ -51,15 +51,17 @@ for sz in sizes:
     sz = int(sz)
     yi = y[:sz]
 
-    ac1_yi = utils.ac1(yi) # TODO: replace with my function, run both and verify that they are the same
+    ac1_yi = np.mean(yi) 
     
-    ac2_yi = np.zeros((len(shifts_2nd), )) # TODO: replace with my function, run both and verify that they are the same
+    ac2_yi = gen.get_autocorrelation(signal=yi, length=L2)
+    ac2_yi_old = np.zeros((len(shifts_2nd), )) # TODO: replace with my function, run both and verify that they are the same
     for (i, shift) in enumerate(shifts_2nd):
-        ac2_yi[i] = utils.ac2(yi, shift)
+        ac2_yi_old[i] = utils.ac2(yi, shift)
         
-    ac3_yi = np.zeros((len(shifts_3rd), )) # TODO: replace with my function, run both and verify that they are the same
+    ac3_yi = gen.get_third_moment(signal=yi, length=L)
+    ac3_yi_old = np.zeros((len(shifts_3rd), )) # TODO: replace with my function, run both and verify that they are the same
     for (i, shifts) in enumerate(shifts_3rd):
-        ac3_yi[i] = utils.ac3(yi, shifts[0], shifts[1])
+        ac3_yi_old[i] = utils.ac3(yi, shifts[0], shifts[1])
     
     samplesi = utils.sample(yi, L)
     del yi

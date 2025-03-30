@@ -46,7 +46,8 @@ def get_third_moment(signal: np.ndarray, length: int) -> np.ndarray:
     padded_signal = np.pad(signal, (0, length), 'constant')
     
     for lag_1 in range(0, length):
-        for lag_2 in range(0, length):
+        for lag_2 in range(lag_1, length):
+            print(f"lag1, lag2 = {lag_1, lag_2}")
             third_moment[lag_1, lag_2] = np.sum(
                 padded_signal[0:n] * 
                 padded_signal[0 + lag_1 : n + lag_1] * 
@@ -77,23 +78,31 @@ def create_clean_observation(base_signal: np.ndarray, observation_length: int, g
         The generated observation signal containing multiple instances of the base signal 
         separated by zeros.
     """
-    # TODO: Change implementation to fix non-uniformity in the density 
     L = len(base_signal)
     instance_number = int((observation_length * gamma) / L)
     assert gamma <= 0.5, "gamma should be less than 0.5 for the separation condition to hold"
     assert instance_number * (L*2-1) <= observation_length, f"For seperation condition, (L*2-1) * instance_number = {(2*L-1) * instance_number} should be <= N={observation_length}"
     assert instance_number > 0, "At least one instance of the base signal should be embedded in the observation"
 
-    observation = np.zeros(observation_length)
-    available_zeros = observation_length - instance_number * (L*2)
+    available_zeros = observation_length - instance_number * (L*2 - 1)
+    zero_list = list(np.zeros(available_zeros))
     padded_base = np.pad(base_signal, (0, L-1), 'constant')
-
-    start = 0    
-    for i in range(instance_number):
-        shift = np.random.choice(np.arange(available_zeros))
-        observation[start + shift : start + shift + 2*L - 1] += padded_base
-        available_zeros -= shift
-        start += 2*L + shift
+    signal_list = [list(padded_base)] * instance_number
+    observation = np.zeros(observation_length)
+    a = np.zeros((available_zeros + instance_number))
+    a[:instance_number] = 1
+    np.random.shuffle(a)
+    signal_indices = (a == 1)
+    
+    ii = 0
+    i = 0
+    while i < observation_length:
+        if signal_indices[ii]:
+            observation[i: i + 2 * L - 1] = padded_base
+            i += 2 * L - 1
+        else:
+            i += 1
+        ii += 1
 
     return observation
 
@@ -145,5 +154,6 @@ def generate_data_set(iterations: int, observation_length: int, signal_length: i
 
 # Example usage
 if __name__ == "__main__":
+    pass
     # TODO: use the functions in utils and experiment_recovery to invert the moments, using my functions to calculate the moments
-    generate_data_set(iterations=1, observation_length=10**5, signal_length=21, sigma=0.5, seed=312, gamma=0.2, file_path=os.path.join(BASE_PATH, "long_observation"))
+    # generate_data_set(iterations=1, observation_length=10**5, signal_length=21, sigma=0.5, seed=312, gamma=0.2, file_path=os.path.join(BASE_PATH, "long_observation"))
