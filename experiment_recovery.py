@@ -54,9 +54,9 @@ for sz in sizes:
     ac1_yi = np.mean(yi) 
     
     ac2_yi = gen.get_autocorrelation(signal=yi, length=L2)
-    ac2_yi_old = np.zeros((len(shifts_2nd), )) # TODO: replace with my function, run both and verify that they are the same
-    for (i, shift) in enumerate(shifts_2nd):
-        ac2_yi_old[i] = utils.ac2(yi, shift)
+    # ac2_yi_old = np.zeros((len(shifts_2nd), )) # TODO: replace with my function, run both and verify that they are the same
+    # for (i, shift) in enumerate(shifts_2nd):
+    #     ac2_yi_old[i] = utils.ac2(yi, shift)
         
     ac3_yi = gen.get_third_moment(signal=yi, length=L)
     ac3_yi_old = np.zeros((len(shifts_3rd), )) # TODO: replace with my function, run both and verify that they are the same
@@ -86,6 +86,7 @@ plt.close("all")
 with plt.style.context('ggplot'):
     fig = plt.figure()
     plt.plot(x, label='Ground truth', lw=2)
+    # TODO: fix the weird inverted graphs
     plt.plot(estimations_mom[0].x[:-1], lw=2, label='Autocorrelation analysis')
     plt.plot(estimations_gmm[0].x[:-1], lw=2, label='Generalized autocorrelation analysis')
     plt.ylim((0, 0.6))

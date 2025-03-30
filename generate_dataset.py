@@ -42,17 +42,26 @@ def get_third_moment(signal: np.ndarray, length: int) -> np.ndarray:
     """
     assert len(signal) >= length, "maximum lag should be less than the length of the signal"
     n = len(signal)
-    third_moment = np.zeros((length, length))
+    third_moment = np.zeros(((length * (length+1)) // 2))
     padded_signal = np.pad(signal, (0, length), 'constant')
     
+    i = 0
     for lag_1 in range(0, length):
-        for lag_2 in range(lag_1, length):
-            print(f"lag1, lag2 = {lag_1, lag_2}")
-            third_moment[lag_1, lag_2] = np.sum(
+        for lag_2 in range(lag_1+1, length): # TODO: remove 1 after verifying correctness
+            third_moment[i] = np.sum(
                 padded_signal[0:n] * 
                 padded_signal[0 + lag_1 : n + lag_1] * 
                 padded_signal[0 + lag_2 : n + lag_2])
+            i += 1
     
+    # TODO: remove this loop after removing the 1 in the next loop
+    for lag in range(0, length):
+        third_moment[i] = np.sum(
+            padded_signal[0:n] * 
+            padded_signal[0 + lag : n + lag] * 
+            padded_signal[0 + lag : n + lag])
+        i += 1
+
     return third_moment / n
 
 def add_gaussian_noise(signal: np.ndarray, sigma: int = 1) -> np.ndarray:
@@ -125,7 +134,7 @@ def generate_data_set(iterations: int, observation_length: int, signal_length: i
     
     means = torch.zeros(iterations)  
     acors = torch.zeros(iterations, signal_length)  
-    third_moments = torch.zeros(iterations, signal_length, signal_length)
+    third_moments = torch.zeros(iterations, (signal_length*(signal_length+1)) // 2)
     base_signal = np.random.normal(0, 1, signal_length)
  
     for iteration in range(iterations):
