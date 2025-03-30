@@ -7,6 +7,7 @@ import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
 import time
 import os
+import utils
 
 BASE_PATH = os.path.dirname(__file__)
 
@@ -43,26 +44,27 @@ def get_third_moment(signal: np.ndarray, length: int) -> np.ndarray:
     assert len(signal) >= length, "maximum lag should be less than the length of the signal"
     n = len(signal)
     third_moment = np.zeros(((length * (length+1)) // 2))
-    padded_signal = np.pad(signal, (0, length), 'constant')
+    padded_signal = np.pad(signal, (length, 0), 'constant')
     
     i = 0
     for lag_1 in range(0, length):
-        for lag_2 in range(lag_1+1, length): # TODO: remove 1 after verifying correctness
+        for lag_2 in range(lag_1+1, length):
+            test = utils.ac3(signal, lag_1, lag_2)
             third_moment[i] = np.sum(
-                padded_signal[0:n] * 
-                padded_signal[0 + lag_1 : n + lag_1] * 
-                padded_signal[0 + lag_2 : n + lag_2])
+                padded_signal[length:] * 
+                padded_signal[length - lag_1 : n + length - lag_1] * 
+                padded_signal[length - lag_2 : n + length - lag_2]) / n
             i += 1
     
-    # TODO: remove this loop after removing the 1 in the next loop
     for lag in range(0, length):
+        test = utils.ac3(signal, lag, lag)
         third_moment[i] = np.sum(
-            padded_signal[0:n] * 
-            padded_signal[0 + lag : n + lag] * 
-            padded_signal[0 + lag : n + lag])
+            padded_signal[length:] * 
+            padded_signal[length - lag : n + length - lag] * 
+            padded_signal[length - lag : n + length - lag]) / n
         i += 1
 
-    return third_moment / n
+    return third_moment
 
 def add_gaussian_noise(signal: np.ndarray, sigma: int = 1) -> np.ndarray:
     noise = np.random.normal(0, sigma, np.shape(signal))
