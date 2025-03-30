@@ -145,4 +145,5 @@ def generate_data_set(iterations: int, observation_length: int, signal_length: i
 
 # Example usage
 if __name__ == "__main__":
+    # TODO: use the functions in utils and experiment_recovery to invert the moments, using my functions to calculate the moments
     generate_data_set(iterations=1, observation_length=10**5, signal_length=21, sigma=0.5, seed=312, gamma=0.2, file_path=os.path.join(BASE_PATH, "long_observation"))
