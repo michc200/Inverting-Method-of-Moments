@@ -1,5 +1,4 @@
 import numpy as np
-import random
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -10,23 +9,6 @@ import time
 import os
 
 BASE_PATH = os.path.dirname(__file__)
-
-def random_split_list(lst: list) -> list:
-    random.shuffle(lst)  
-
-    # generate random split points
-    split_num = np.random.randint(1, len(lst))
-    split_sizes = sorted(np.random.choice(range(1, len(lst)), split_num - 1)) if split_num > 1 else []
-
-    # Split the list
-    sublists = []
-    prev = 0
-    for split in split_sizes:
-        sublists.append(lst[prev:split])
-        prev = split
-    sublists.append(lst[prev:])  # Add the last part
-
-    return sublists
 
 def save_data(data: torch.Tensor, path: str) -> None:
     if not os.path.exists(path):
@@ -60,17 +42,26 @@ def get_third_moment(signal: np.ndarray, length: int) -> np.ndarray:
     """
     assert len(signal) >= length, "maximum lag should be less than the length of the signal"
     n = len(signal)
-    third_moment = np.zeros((length, length))
-    padded_signal = np.pad(signal, (0, length), 'constant')
+    third_moment = np.zeros(((length * (length+1)) // 2))
+    padded_signal = np.pad(signal, (length, 0), 'constant')
     
+    i = 0
     for lag_1 in range(0, length):
-        for lag_2 in range(0, length):
-            third_moment[lag_1, lag_2] = np.sum(
-                padded_signal[0:n] * 
-                padded_signal[0 + lag_1 : n + lag_1] * 
-                padded_signal[0 + lag_2 : n + lag_2])
+        for lag_2 in range(lag_1+1, length):
+            third_moment[i] = np.sum(
+                padded_signal[length:] * 
+                padded_signal[length - lag_1 : n + length - lag_1] * 
+                padded_signal[length - lag_2 : n + length - lag_2]) / n
+            i += 1
     
-    return third_moment / n
+    for lag in range(0, length):
+        third_moment[i] = np.sum(
+            padded_signal[length:] * 
+            padded_signal[length - lag : n + length - lag] * 
+            padded_signal[length - lag : n + length - lag]) / n
+        i += 1
+
+    return third_moment
 
 def add_gaussian_noise(signal: np.ndarray, sigma: int = 1) -> np.ndarray:
     noise = np.random.normal(0, sigma, np.shape(signal))
@@ -102,9 +93,7 @@ def create_clean_observation(base_signal: np.ndarray, observation_length: int, g
     assert instance_number > 0, "At least one instance of the base signal should be embedded in the observation"
 
     available_zeros = observation_length - instance_number * (L*2 - 1)
-    zero_list = list(np.zeros(available_zeros))
     padded_base = np.pad(base_signal, (0, L-1), 'constant')
-    signal_list = [list(padded_base)] * instance_number
     observation = np.zeros(observation_length)
     a = np.zeros((available_zeros + instance_number))
     a[:instance_number] = 1
@@ -139,10 +128,9 @@ def generate_data_set(iterations: int, observation_length: int, signal_length: i
     """
     np.random.seed(seed)
     
-    
     means = torch.zeros(iterations)  
     acors = torch.zeros(iterations, signal_length)  
-    third_moments = torch.zeros(iterations, signal_length, signal_length)
+    third_moments = torch.zeros(iterations, (signal_length*(signal_length+1)) // 2)
     base_signal = np.random.normal(0, 1, signal_length)
  
     for iteration in range(iterations):
@@ -172,12 +160,3 @@ def generate_data_set(iterations: int, observation_length: int, signal_length: i
 # Example usage
 if __name__ == "__main__":
     generate_data_set(iterations=1, observation_length=10**5, signal_length=21, sigma=0.5, seed=312, gamma=0.2, file_path=os.path.join(BASE_PATH, "long_observation"))
-    # some_list = list(range(10)) 
-    # print([some_list] * 3 + [0, 0, 0])
-    # sublists = random_split_list(some_list)
-    # print(sublists)
-    # new_list = []
-    # np.random.shuffle(sublists) 
-    # for i in range(len(sublists)):
-    #     new_list += sublists[i]
-    # print(new_list)
