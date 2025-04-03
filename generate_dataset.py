@@ -96,9 +96,7 @@ def create_clean_observation(base_signal: np.ndarray, observation_length: int, g
     assert instance_number > 0, "At least one instance of the base signal should be embedded in the observation"
 
     available_zeros = observation_length - instance_number * (L*2 - 1)
-    zero_list = list(np.zeros(available_zeros))
     padded_base = np.pad(base_signal, (0, L-1), 'constant')
-    signal_list = [list(padded_base)] * instance_number
     observation = np.zeros(observation_length)
     a = np.zeros((available_zeros + instance_number))
     a[:instance_number] = 1
