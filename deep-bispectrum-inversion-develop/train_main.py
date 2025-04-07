@@ -222,7 +222,7 @@ def train(args, params):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(device)
     
-    train_implementation(0, args, params)
+    train_implementation(device, args, params)
 
 def train_distributed(args, params):
     # Apply ddp setup
