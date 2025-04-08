@@ -56,7 +56,8 @@ class BispectrumCalculator(nn.Module):
         self.targets_count = targets_count
         self.target_len = target_len
         self.device = device
-        self.channels = 2
+        self.channels = 1
+        # TODO: make sure that channel number = 1 works
         self.height = target_len
         self.width = target_len
         

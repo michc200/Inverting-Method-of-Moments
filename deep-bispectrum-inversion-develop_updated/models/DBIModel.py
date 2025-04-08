@@ -38,7 +38,7 @@ class DBIModel(nn.Module):
         super(DBIModel, self).__init__()
 
         self.use_transformers = use_transformers
-        self.bs_channels = 2
+        self.bs_channels = 1
         self.embed_dim = embed_dim
         self.linear = nn.Linear(embed_dim, signals_count)
         self.act_fn = set_activation(activation)
