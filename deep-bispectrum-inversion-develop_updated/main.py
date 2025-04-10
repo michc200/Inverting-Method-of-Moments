@@ -56,7 +56,7 @@ if __name__ == "__main__":
     	 'Update relevant parameters in the configuration.')
     
     # Data
-    parser.add_argument('--data_mode', type=str, default='random', help='Training data mode: random or fixed.')
+    parser.add_argument('--data_mode', type=str, default='fixed', help='Training data mode: random or fixed.')
     parser.add_argument('--train_data_size', type=int, default=50, help='Training set size.')
     parser.add_argument('--val_data_size', type=int, default=10, help='Validation set size.')
     parser.add_argument('--sigma', type=float, default=0., help='Noise level (set > 0 for noisy data).')

@@ -291,7 +291,7 @@ def train_implementation(device, args, params, is_distributed=False):
     folder_read, folder_write = init_folders(args, test_name)
     
     # Initialize wandb
-    if device == 0:
+    if device == 0: # TODO: Change this 
         run = None
         if args.wandb:
             init_wandb(args, params, test_name, folder_write) 
