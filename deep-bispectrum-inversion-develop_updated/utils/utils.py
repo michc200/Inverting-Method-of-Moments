@@ -35,18 +35,17 @@ def clculate_bispectrum_efficient(x, normalize=False):
 
 def calculate_third_moment_with_redundancy(x):
     length = x.shape[0]
-    third_moment = torch.zeros(length, length)
+    third_moment = torch.zeros(length, length, device=x.device)
     padded_signal = nn.functional.pad(x, (length, 0), 'constant')
     
-    i = 0
-    for lag_1 in range(0, length):
-        for lag_2 in range(0, length):
-            third_moment[lag_1, lag_2] = torch.sum(
-                padded_signal[length:] * 
-                padded_signal[length - lag_1 : 2*length-lag_1] * 
-                padded_signal[length - lag_2 : 2*length-lag_2]) / length
-            i += 1
-    
+    with torch.autocast(device_type=device_type, enabled=False):
+        for lag_1 in range(0, length):
+            for lag_2 in range(0, length):
+                third_moment[lag_1, lag_2] = torch.sum(
+                    padded_signal[length:] * 
+                    padded_signal[length - lag_1 : 2*length - lag_1] * 
+                    padded_signal[length - lag_2 : 2*length - lag_2]) / length
+
     return third_moment
 
 class BispectrumCalculator(nn.Module):
