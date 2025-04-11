@@ -1,7 +1,7 @@
 import os
 import wandb
 import torch
-from utils.utils import BispectrumCalculator, compute_cost_matrix, greedy_match
+from utils.utils import BispectrumCalculator, compute_cost_matrix, greedy_match, is_main_process
 from config.params import params
 import numpy as np
 
@@ -43,7 +43,7 @@ class Trainer:
         self.folder_write = folder_write
         self.clip = args.clip_grad_norm
         self.loss_criterion = args.loss_criterion
-        self.is_master = (device == 0)
+        self.is_master = (is_main_process(device=device))
         self.min_ckp_val_loss = torch.inf
         self.min_loss_epoch = 0
         device_type = "cuda" if torch.cuda.is_available() else "cpu"

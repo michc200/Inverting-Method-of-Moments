@@ -13,7 +13,7 @@ import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
 from dataset import create_dataset, prepare_data_loader
 from torch.cuda import device_count
-from utils.utils import BispectrumCalculator
+from utils.utils import BispectrumCalculator, is_main_process
 
 #test
 
@@ -53,7 +53,7 @@ def load_checkpoint(model, optimizer, scheduler, ckp_path, device, args, params,
     epoch = 0
     error_flag = torch.tensor(0, dtype=torch.int, device=device)  # Error flag
 
-    if device == 0 :  # Load only on Rank 0 in DDP or for Single GPU
+    if is_main_process(device=device) :  # TODO: Check if this works
         if os.path.exists(ckp_path):
             print('Checkpoint found')
             if args.run_mode == "override":
@@ -291,7 +291,7 @@ def train_implementation(device, args, params, is_distributed=False):
     folder_read, folder_write = init_folders(args, test_name)
     
     # Initialize wandb
-    if device == 0: # TODO: Change this 
+    if is_main_process(device): # TODO: make sure this works 
         run = None
         if args.wandb:
             init_wandb(args, params, test_name, folder_write) 
@@ -355,7 +355,7 @@ def train_implementation(device, args, params, is_distributed=False):
                       start_epoch=epoch,
                       args=args,
                       is_distributed=is_distributed)
-    if device == 0:
+    if is_main_process(device=device):
         start_time = time.time()  
         print("Starting run...")
     
@@ -367,7 +367,7 @@ def train_implementation(device, args, params, is_distributed=False):
     # Train and evaluate
     trainer.run()
     
-    if device == 0:
+    if is_main_process(device=device):
         end_time = time.time()
   
         print(f"Time taken to train in {os.path.basename(__file__)}:", 

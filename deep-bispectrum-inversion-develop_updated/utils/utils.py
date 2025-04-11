@@ -56,7 +56,6 @@ class BispectrumCalculator(nn.Module):
         self.target_len = target_len
         self.device = device
         self.channels = 1
-        # TODO: make sure that channel number = 1 works
         self.height = target_len
         self.width = target_len
         
@@ -178,3 +177,7 @@ def greedy_match(cost_matrix):
         matched_indices.append(matched)
 
     return matched_indices  # list of B lists of (i, j) tuples
+
+
+def is_main_process(device):
+    return device.type == "cpu" or torch.cuda.current_device() == 0
