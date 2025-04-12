@@ -45,7 +45,7 @@ if __name__ == "__main__":
     parser.add_argument('--L', type=int, default=10, help='Signal length in the dataset.')
     parser.add_argument('--K', type=int, default=1, help='Number of signals to reconstruct from.')
     parser.add_argument('--batch_size', type=int, default=1, help='Mini-Batch size.')
-    parser.add_argument('--epochs', type=int, default=1, help='Number of training epochs.')
+    parser.add_argument('--epochs', type=int, default=10, help='Number of training epochs.')
     parser.add_argument('--lr', type=float, default=3e-4, help='Learning rate. If using a scheduler: '
         'maximal for OneCycleLR and CyclicLR, else initial.')
     parser.add_argument('--optimizer', type=str, default="AdamW", 
@@ -57,8 +57,8 @@ if __name__ == "__main__":
     
     # Data
     parser.add_argument('--data_mode', type=str, default='fixed', help='Training data mode: random or fixed.')
-    parser.add_argument('--train_data_size', type=int, default=50, help='Training set size.')
-    parser.add_argument('--val_data_size', type=int, default=10, help='Validation set size.')
+    parser.add_argument('--train_data_size', type=int, default=1, help='Training set size.')
+    parser.add_argument('--val_data_size', type=int, default=1, help='Validation set size.')
     parser.add_argument('--sigma', type=float, default=0., help='Noise level (set > 0 for noisy data).')
     
     # Baseline
@@ -78,7 +78,7 @@ if __name__ == "__main__":
         help='Clip gradient norm if > 0.')
     
     # Run mode
-    parser.add_argument('--run_mode', type=str, default="resume",
+    parser.add_argument('--run_mode', type=str, default="override",
         help='Run mode: override, resume, or from_pretrained.')
     
     # Model options
@@ -95,7 +95,7 @@ if __name__ == "__main__":
     # Output and logging
     parser.add_argument('--run_output_suffix', type=str, default='', help='Suffix for output folder name.')
     parser.add_argument('--save_every', type=int, default=5, help='Checkpoint saving interval (in epochs).')
-    parser.add_argument('--print_every', type=int, default=100, help='Losses printing interval (in epochs).')
+    parser.add_argument('--print_every', type=int, default=1, help='Losses printing interval (in epochs).')
     parser.add_argument('--early_stopping', action='store_true',
         help='Enable early stopping. Set stopping parameters in the configuration.')
     

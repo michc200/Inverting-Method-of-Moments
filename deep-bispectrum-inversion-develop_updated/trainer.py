@@ -58,7 +58,11 @@ class Trainer:
         # Compute avergae bispectrum mse loss
         bs_pred, _ = self.bs_calc(pred)
         bs_target, _ = self.bs_calc(target)
-        bs_mse_loss = torch.norm(bs_pred - bs_target) ** 2 / torch.norm(bs_target) ** 2
+        bs_mse_loss = torch.norm(bs_pred - bs_target) ** 2
+
+        print("Prediction:", bs_pred)
+        print("Target:", bs_target)
+        print("MSE:", bs_mse_loss)
 
         # Compute matched mse loss according to loss criterion
         if self.signals_count > 1:
@@ -131,6 +135,8 @@ class Trainer:
             wandb.save(f'{self.folder_write}/ckp.pt', base_path=f'{self.folder_write}')
 
     def _run_epoch_train(self):
+        print("-------Now Training...--------")
+
         total_loss = 0.
         for idx, (sources, targets) in self.train_loader:
             with torch.autograd.set_detect_anomaly(True):
@@ -139,7 +145,6 @@ class Trainer:
                 self.optimizer.zero_grad()
                 # forward pass + loss computation
                 loss = self._run_batch(sources, targets, self.data_mode)
-
                 # backward passs
                 self.scaler.scale(loss).backward()
                 # clip gradients
@@ -174,6 +179,7 @@ class Trainer:
             self.scheduler.step(loss)
 
     def _run_epoch_validate(self):
+        print("-------Now Validating...--------")
         total_loss = 0.
 
         for idx, (sources, targets) in self.val_loader:
