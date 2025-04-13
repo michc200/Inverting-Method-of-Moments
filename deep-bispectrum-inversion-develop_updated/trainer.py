@@ -241,26 +241,27 @@ class Trainer:
             # train             
             train_loss = self.train()
             # validate
-            val_loss = self.validate()
+            # val_loss = self.validate()
 
-            if np.isnan(train_loss).any() or np.isnan(val_loss).any():
-                raise RuntimeError(f'Detected NaN loss at epoch {self.epoch}.')
+            # if np.isnan(train_loss).any() or np.isnan(val_loss).any():
+            #     raise RuntimeError(f'Detected NaN loss at epoch {self.epoch}.')
 
             if self.is_master:
                 # save checkpoint
                 if self.epoch == 1 or self.epoch % self.save_every == 0:
-                    if val_loss < self.min_ckp_val_loss:
-                        # Update the new minimum
-                        self.min_ckp_val_loss = val_loss
-                        self.min_loss_epoch = self.epoch
-                        # Save new checkpoint
-                        self._save_checkpoint()
+                    pass
+                    # if val_loss < self.min_ckp_val_loss:
+                    #     # Update the new minimum
+                    #     self.min_ckp_val_loss = val_loss
+                    #     self.min_loss_epoch = self.epoch
+                    #     # Save new checkpoint
+                    #     self._save_checkpoint()
 
                 # print losses
                 if self.epoch == 1 or self.epoch % self.print_every == 0:
                     print(f'-------Epoch {self.epoch}/{self.epochs}-------')
                     print(f'Total Train loss: {train_loss:.6f}')
-                    print(f'Total Validation loss: {val_loss:.6f}')
+                    # print(f'Total Validation loss: {val_loss:.6f}')
                     print(f'The minimal validation loss is {self.min_ckp_val_loss} from epoch {self.min_loss_epoch}.')
 
                     # print lr when using scheduler
@@ -270,14 +271,16 @@ class Trainer:
 
                     # log losses with wandb
                     if self.wandb_flag:
-                        self.log_wandb(train_loss, val_loss)
+                        pass
+                        # self.log_wandb(train_loss, val_loss)
 
                 # early stopping - stop early if early_stopping is on
                 if self.early_stopping:
-                    stop = self.check_early_stopping(val_loss)
-                    should_stop[0] = int(stop)
+                    pass
+                    # stop = self.check_early_stopping(val_loss)
+                    # should_stop[0] = int(stop)
 
-                self.prev_val_loss = val_loss
+                # self.prev_val_loss = val_loss
 
             # Broadcast stopping signal to all ranks
             if self.is_distributed:
