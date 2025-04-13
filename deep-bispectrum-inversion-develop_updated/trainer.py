@@ -262,7 +262,7 @@ class Trainer:
                     print(f'-------Epoch {self.epoch}/{self.epochs}-------')
                     print(f'Total Train loss: {train_loss:.6f}')
                     # print(f'Total Validation loss: {val_loss:.6f}')
-                    print(f'The minimal validation loss is {self.min_ckp_val_loss} from epoch {self.min_loss_epoch}.')
+                    # print(f'The minimal validation loss is {self.min_ckp_val_loss} from epoch {self.min_loss_epoch}.')
 
                     # print lr when using scheduler
                     if self.scheduler_name != 'None':
