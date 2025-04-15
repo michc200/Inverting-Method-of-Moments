@@ -52,7 +52,7 @@ def calculate_third_moment_with_redundancy(x):
                     padded_signal[length - lag_2 : 2*length - lag_2]) / length
 
     # normalize the third moment:
-    third_moment = third_moment
+    third_moment = third_moment / torch.max(torch.abs(third_moment))
     return third_moment
 
 class BispectrumCalculator(nn.Module):
