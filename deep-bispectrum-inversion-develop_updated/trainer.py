@@ -58,7 +58,7 @@ class Trainer:
         # Compute avergae bispectrum mse loss
         bs_pred, _ = self.bs_calc(pred)
         bs_target, _ = self.bs_calc(target)
-        bs_mse_loss = torch.norm(bs_pred - bs_target) ** 2
+        bs_mse_loss = torch.norm(bs_pred - bs_target) ** 2 / torch.norm(bs_target) ** 2
 
         print("Prediction:", bs_pred)
         print("Target:", bs_target)
