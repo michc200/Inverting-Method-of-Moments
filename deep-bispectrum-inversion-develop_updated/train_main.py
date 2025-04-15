@@ -317,7 +317,6 @@ def train_implementation(device, args, params, is_distributed=False):
     # Set validation dataset and dataloader 
     print('Set validation data')
     
-    # TODO: Verify that the validation data is generated correctly
     val_dataset = create_dataset(args.val_data_size, args.K, args.L,
                                  args.read_baseline, 'fixed',
                                  folder_read, bs_calc,
